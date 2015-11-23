@@ -58,13 +58,16 @@ namespace octomap {
     FluxDensity() : x(0.0), y(0.0), z(0.0){}
     FluxDensity(float _x, float _y, float _z) 
       : x(_x), y(_y), z(_z){}
-// TODO equality/unequality operators for float
-//      inline bool operator== (const Color &other) const {
-//        return (r==other.r && g==other.g && b==other.b);
-//      }
-//      inline bool operator!= (const Color &other) const {
-//        return (r!=other.r || g!=other.g || b!=other.b);
-//      }
+      inline bool operator== (const FluxDensity &other) const {
+          bool same_x,same_y,same_z;
+          same_x = fabs(x-other.x) < std::numeric_limits<float>::epsilon();
+          same_y = fabs(y-other.y) < std::numeric_limits<float>::epsilon();
+          same_z = fabs(z-other.z) < std::numeric_limits<float>::epsilon();
+          return (same_x && same_y && same_z); 
+      }
+      inline bool operator!= (const FluxDensity &other) const {
+        return !operator==(other);
+      }
     float x,y,z;
     };
 
@@ -73,9 +76,9 @@ namespace octomap {
 
     FluxDensityOcTreeNode(const FluxDensityOcTreeNode& rhs) : OcTreeNode(rhs), flux(rhs.flux) {}
 
-//    bool operator==(const ColorOcTreeNode& rhs) const{
-//      return (rhs.value == value && rhs.color == color);
-//    }
+    bool operator==(const FluxDensityOcTreeNode& rhs) const{
+      return (rhs.value == value && rhs.flux == flux);
+    }
     
     // children
     inline FluxDensityOcTreeNode* getChild(unsigned int i) {
@@ -132,7 +135,7 @@ namespace octomap {
     /// (Covariant return type requires an up-to-date compiler)
     FluxDensityOcTree* create() const {return new FluxDensityOcTree(resolution); }
 
-    std::string getTreeType() const {return "ColorOcTree";}
+    std::string getTreeType() const {return "FluxDensityOcTree";}
    
     // set node color at given key or coordinate. Replaces previous color.
     FluxDensityOcTreeNode* setNodeFluxDensity(const OcTreeKey& key, const float& fdx, const float& fdy, const float& fdz); 
@@ -172,7 +175,7 @@ namespace octomap {
     void updateInnerOccupancy();
 
     // uses gnuplot to plot a RGB histogram in EPS format
-    void writeColorHistogram(std::string filename);
+    //void writeColorHistogram(std::string filename);
     
   protected:
     void updateInnerOccupancyRecurs(FluxDensityOcTreeNode* node, unsigned int depth);
