@@ -28,6 +28,7 @@
 
 #include <octovis/ViewerGui.h>
 #include <octovis/ColorOcTreeDrawer.h>
+#include <octovis/FluxDensityOcTreeDrawer.h>
 #include <octomap/MapCollection.h>
 
 
@@ -188,6 +189,9 @@ void ViewerGui::addOctree(octomap::AbstractOcTree* tree, int id, octomap::pose6d
         }
         else if (dynamic_cast<ColorOcTree*>(tree)) {
           r->octree_drawer = new ColorOcTreeDrawer();
+        }
+        else if (dynamic_cast<FluxDensityOcTree*>(tree)) {
+          r->octree_drawer = new FluxDensityOcTreeDrawer();
         } else{
           OCTOMAP_ERROR("Could not create drawer for tree type %s\n", tree->getTreeType().c_str());
         }
@@ -212,6 +216,9 @@ void ViewerGui::addOctree(octomap::AbstractOcTree* tree, int id, octomap::pose6d
         }
         else if (dynamic_cast<ColorOcTree*>(tree)) {
           otr.octree_drawer = new ColorOcTreeDrawer();
+        }
+        else if (dynamic_cast<FluxDensityOcTree*>(tree)) {
+          otr.octree_drawer = new FluxDensityOcTreeDrawer();
         } else{
           OCTOMAP_ERROR("Could not create drawer for tree type %s\n", tree->getTreeType().c_str());
         }
