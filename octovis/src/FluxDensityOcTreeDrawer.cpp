@@ -23,6 +23,7 @@
  */
 
 #include <octovis/FluxDensityOcTreeDrawer.h>
+#include <octomap/FluxDensityOcTree.h>
 
 namespace octomap {
 
@@ -86,6 +87,8 @@ namespace octomap {
           end=tree.end_tree(); it!= end; ++it) {
 
       if (it.isLeaf()) { // voxels for leaf nodes
+          // Color depending on flux density
+          FluxColor c = fluxDensityToRGB(it->getFluxDensity(),0.0,1.0);
         if (uses_origin) 
           voxel = OcTreeVolume(origin.rot().rotate(it.getCoordinate()), it.getSize());
         else 
@@ -94,20 +97,20 @@ namespace octomap {
         if (tree.isNodeOccupied(*it)){ // occupied voxels
           if (tree.isNodeAtThreshold(*it)) {
             idx_occupied_thres = generateCube(voxel, cube_template, idx_occupied_thres, &m_occupiedThresArray);
-            // TODO generate color from flux density strength (RGBA rainbow colormap)
             color_idx_occupied_thres = setCubeColorHeightmap(voxel, color_idx_occupied_thres, &m_occupiedThresColorArray);
-//            color_idx_occupied_thres =  setCubeColorRGBA(it->getColor().r, it->getColor().g, it->getColor().b, 
-//                                                         (unsigned char) (it->getOccupancy() * 255.),
-//                                                         color_idx_occupied_thres, &m_occupiedThresColorArray);
+            color_idx_occupied_thres =  setCubeColorRGBA(c.r, c.g, c.b, 
+                                                         (unsigned char) (it->getOccupancy() * 255.),
+                                                         color_idx_occupied_thres, &m_occupiedThresColorArray);
           }
           else {
             idx_occupied = generateCube(voxel, cube_template, idx_occupied, &m_occupiedArray);
             color_idx_occupied = setCubeColorHeightmap(voxel, color_idx_occupied, &m_occupiedColorArray);
-//            color_idx_occupied = setCubeColorRGBA(it->getColor().r, it->getColor().g, it->getColor().b, 
-//                                                  (unsigned char)(it->getOccupancy() * 255.),
-//                                                  color_idx_occupied, &m_occupiedColorArray);
+            color_idx_occupied = setCubeColorRGBA(c.r, c.g, c.b, 
+                                                  (unsigned char)(it->getOccupancy() * 255.),
+                                                  color_idx_occupied, &m_occupiedColorArray);
           }
         }
+        //TODO also color freespace voxels using FluxColor from FluxDensity
         else if (showAll) { // freespace voxels
           if (tree.isNodeAtThreshold(*it)) {
             idx_free_thres = generateCube(voxel, cube_template, idx_free_thres, &m_freeThresArray);
@@ -137,5 +140,35 @@ namespace octomap {
     if(m_drawOcTreeGrid)
       initOctreeGridVis();    
   }
+
+  // Hot-to-Cold colormap after Paul Bourke http://paulbourke.net/texture_color/colourspace
+  octomap::FluxColor FluxDensityOcTreeDrawer::fluxDensityToRGB(const octomap::FluxDensityOcTreeNode::FluxDensity& fd,float vmin, float vmax){
+     float v = sqrtf(fd.x * fd.x + fd.y * fd.y + fd.z * fd.z); 
+
+     FluxColor c = {1.0,1.0,1.0}; // white
+     double dv;
+
+     if (v < vmin)
+         v = vmin;
+     if (v > vmax)
+         v = vmax;
+     dv = vmax - vmin;
+
+     if (v < (vmin + 0.25 * dv)) {
+         c.r = 0;
+         c.g = 4 * (v - vmin) / dv;
+     } else if (v < (vmin + 0.5 * dv)) {
+         c.r = 0;
+         c.b = 1 + 4 * (vmin + 0.25 * dv - v) / dv;
+     } else if (v < (vmin + 0.75 * dv)) {
+         c.r = 4 * (v - vmin - 0.5 * dv) / dv;
+         c.b = 0;
+     } else {
+         c.g = 1 + 4 * (vmin + 0.75 * dv - v) / dv;
+         c.b = 0;
+     }
+     return c;
+  }
+
 
 } // end namespace

@@ -30,17 +30,24 @@
 
 namespace octomap {
 
-  class FluxDensityOcTreeDrawer : public OcTreeDrawer {
-  public:
-    FluxDensityOcTreeDrawer();
-    virtual ~FluxDensityOcTreeDrawer();
+    struct FluxColor{
+        double  r;
+        double  g;
+        double  b;
+    };
 
-    virtual void setOcTree(const AbstractOcTree& tree_pnt, const pose6d& origin, int map_id_);
+    class FluxDensityOcTreeDrawer : public OcTreeDrawer {
+        public:
+            FluxDensityOcTreeDrawer();
+            virtual ~FluxDensityOcTreeDrawer();
 
-  protected:
-    
-    
-  };
+            virtual void setOcTree(const AbstractOcTree& tree_pnt, const pose6d& origin, int map_id_);
+            FluxColor fluxDensityToRGB(const FluxDensityOcTreeNode::FluxDensity& fd,float min, float max);
+
+        protected:
+
+
+    };
 
 
 } // end namespace
